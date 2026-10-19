@@ -100,15 +100,6 @@
 
 <body class="bg-transparent font-sans antialiased">
 
-
-    <!-- =========================================
-         BACKGROUND PARTICLES
-    ========================================== -->
-
-    <canvas id="particle-background"></canvas>
-
-
-
     <!-- =========================================
          MAIN APPLICATION
     ========================================== -->
@@ -522,7 +513,12 @@
 
             <header
                 class="
-                    bg-white
+                    fixed
+                    top-0
+                    right-0
+                    left-64
+                    z-50
+                    bg-gray-100
                     border-b
                     border-gray-200
                     h-16
@@ -530,7 +526,6 @@
                     items-center
                     justify-between
                     px-6
-                    shrink-0
                 "
             >
 
@@ -629,7 +624,7 @@
 
             <main
                 id="page-content"
-                class="flex-1 p-6 page-transition bg-transparent"
+                class="flex-1 p-6 pt-20 page-transition bg-transparent"
             >
 
                 @yield('content')
@@ -768,257 +763,6 @@
             }
         );
 
-
-
-        /* =========================================
-           PARTICLE BACKGROUND
-        ========================================== */
-
-        const canvas =
-            document.getElementById(
-                'particle-background'
-            );
-
-        const ctx =
-            canvas.getContext('2d');
-
-
-        let particles = [];
-
-
-        function resizeCanvas() {
-
-            canvas.width =
-                window.innerWidth;
-
-            canvas.height =
-                window.innerHeight;
-
-        }
-
-
-        resizeCanvas();
-
-
-        window.addEventListener(
-            'resize',
-            resizeCanvas
-        );
-
-
-
-        /* =========================================
-           PARTICLE SETTINGS
-        ========================================== */
-
-        const particleCount = 500;
-
-
-        for (
-            let i = 0;
-            i < particleCount;
-            i++
-        ) {
-
-            particles.push({
-
-                x:
-                    Math.random() *
-                    canvas.width,
-
-                y:
-                    Math.random() *
-                    canvas.height,
-
-                size:
-                    Math.random() *
-                    1.8 +
-                    0.6,
-
-                speedX:
-                    (Math.random() - 0.5) *
-                    0.25,
-
-                speedY:
-                    (Math.random() - 0.5) *
-                    0.25,
-
-                opacity:
-                    Math.random() *
-                    0.55 +
-                    0.2,
-
-                glow:
-                    Math.random() *
-                    12 +
-                    8,
-
-                pulse:
-                    Math.random() *
-                    Math.PI *
-                    2,
-
-                pulseSpeed:
-                    Math.random() *
-                    0.02 +
-                    0.01
-
-            });
-
-        }
-
-
-
-        /* =========================================
-           DRAW PARTICLES
-        ========================================== */
-
-        function drawParticles() {
-
-
-            ctx.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-
-            particles.forEach(
-                particle => {
-
-
-                    // Gerakan
-
-                    particle.x +=
-                        particle.speedX;
-
-                    particle.y +=
-                        particle.speedY;
-
-
-
-                    // Loop horizontal
-
-                    if (
-                        particle.x <
-                        -10
-                    ) {
-
-                        particle.x =
-                            canvas.width +
-                            10;
-
-                    }
-
-
-                    if (
-                        particle.x >
-                        canvas.width +
-                        10
-                    ) {
-
-                        particle.x =
-                            -10;
-
-                    }
-
-
-
-                    // Loop vertical
-
-                    if (
-                        particle.y <
-                        -10
-                    ) {
-
-                        particle.y =
-                            canvas.height +
-                            10;
-
-                    }
-
-
-                    if (
-                        particle.y >
-                        canvas.height +
-                        10
-                    ) {
-
-                        particle.y =
-                            -10;
-
-                    }
-
-
-
-                    // Pulse
-
-                    particle.pulse +=
-                        particle.pulseSpeed;
-
-
-                    const pulse =
-                        Math.sin(
-                            particle.pulse
-                        ) *
-                        0.25 +
-                        0.75;
-
-
-                    const opacity =
-                        particle.opacity *
-                        pulse;
-
-
-
-                    // Glow
-
-                    ctx.beginPath();
-
-
-                    ctx.shadowBlur =
-                        particle.glow;
-
-
-                    ctx.shadowColor =
-                        'rgba(34, 211, 238, 0.9)';
-
-
-                    ctx.fillStyle =
-                        `rgba(34, 211, 238, ${opacity})`;
-
-
-                    ctx.arc(
-                        particle.x,
-                        particle.y,
-                        particle.size,
-                        0,
-                        Math.PI * 2
-                    );
-
-
-                    ctx.fill();
-
-
-                    ctx.shadowBlur = 0;
-
-
-                }
-            );
-
-
-            requestAnimationFrame(
-                drawParticles
-            );
-
-        }
-
-
-        drawParticles();
-
-
-
         /* =========================================
            SIDEBAR ACTIVE MENU
         ========================================== */
@@ -1120,10 +864,10 @@
                     if (animate) {
 
                         activeBg.style.transition =
-                            'all 300ms ease-out';
+                            'none';
 
                         activeLine.style.transition =
-                            'all 300ms ease-out';
+                            'none';
 
                     } else {
 

@@ -18,7 +18,7 @@ public function indexPeminjaman(Request $request)
 
     $peminjamans = Peminjaman::with([
         'user',
-        'detailPinjams.alat'
+        'detailPinjam.alat'
     ])
     ->when($search, function ($query, $search) {
         $query->whereHas('user', function ($q) use ($search) {
@@ -41,14 +41,14 @@ public function indexPeminjaman(Request $request)
         DB::beginTransaction();
 
         try {
-            $peminjaman = Peminjaman::with('detailPinjams')->findOrFail($id);
+            $peminjaman = Peminjaman::with('detailPinjam')->findOrFail($id);
 
             $peminjaman->update([
                 'status' => 'dipinjam'
             ]);
 
             // Kurangi stok alat secara otomatis
-            foreach ($peminjaman->detailPinjams as $detail) {
+            foreach ($peminjaman->detailPinjam as $detail) {
                 $alat = Alat::findOrFail($detail->alat_id);
                 $alat->stok -= $detail->jumlah;
                 $alat->save();
@@ -105,7 +105,7 @@ public function indexPeminjaman(Request $request)
 
     $peminjamans = Peminjaman::with([
         'user',
-        'detailPinjams.alat'
+        'detailPinjam.alat'
     ])
     ->where('status', 'dipinjam')
     ->when($search, function ($query, $search) {
@@ -129,7 +129,7 @@ public function indexPeminjaman(Request $request)
 
     $query = Pengembalian::with([
         'peminjaman.user',
-        'peminjaman.detailPinjams.alat',
+        'peminjaman.detailPinjam.alat',
         'petugas'
     ]);
 
@@ -166,7 +166,7 @@ public function cetakLaporan(Request $request)
 
     $query = Pengembalian::with([
         'peminjaman.user',
-        'peminjaman.detailPinjams.alat',
+        'peminjaman.detailPinjam.alat',
         'petugas'
     ]);
 
@@ -205,7 +205,7 @@ public function cetakLaporan(Request $request)
 
     try {
 
-        $peminjaman = Peminjaman::with('detailPinjams')
+        $peminjaman = Peminjaman::with('detailPinjam')
             ->findOrFail($peminjamanId);
 
         // Simpan data pengembalian
@@ -224,7 +224,7 @@ public function cetakLaporan(Request $request)
         ]);
 
         // Kembalikan stok alat
-        foreach ($peminjaman->detailPinjams as $detail) {
+        foreach ($peminjaman->detailPinjam as $detail) {
 
             $alat = Alat::findOrFail($detail->alat_id);
 

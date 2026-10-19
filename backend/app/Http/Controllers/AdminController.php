@@ -355,7 +355,7 @@ public function storePengembalian(Request $request)
         |--------------------------------------------------------------------------
         */
 
-        \App\Models\Pengembalian::create([
+        $pengembalian = \App\Models\Pengembalian::create([
             'peminjaman_id' => $peminjaman->id,
             'tgl_kembali' => $request->tgl_kembali,
             'kondisi_kembali' => $request->kondisi_kembali,
@@ -385,6 +385,7 @@ public function storePengembalian(Request $request)
 
         $peminjaman->update([
             'status' => 'dikembalikan',
+            'tgl_kembali' => $request->tgl_kembali,
         ]);
 
         $this->catatAktivitas(
@@ -946,8 +947,7 @@ public function indexPeminjaman(Request $request)
                 $q->where('status', 'like', "%{$search}%")
 
                     ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                          ->orWhere('email', 'like', "%{$search}%");
+                        $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
                     })
 
                     ->orWhereHas('detailPinjam.alat', function ($q) use ($search) {
@@ -1168,10 +1168,7 @@ public function updateStatusPeminjaman(Request $request, $id)
         |--------------------------------------------------------------------------
         */
 
-        if (
-            $statusLama !== 'dipinjam' &&
-            $statusBaru === 'dipinjam'
-        ) {
+        if ($statusLama !== 'dipinjam' && $statusBaru === 'dipinjam') {
 
             foreach ($peminjaman->detailPinjam as $detail) {
 
@@ -1193,10 +1190,7 @@ public function updateStatusPeminjaman(Request $request, $id)
         |--------------------------------------------------------------------------
         */
 
-        if (
-            in_array($statusLama, ['dipinjam', 'telat']) &&
-            $statusBaru === 'dikembalikan'
-        ) {
+        if (in_array($statusLama, ['dipinjam', 'telat']) && $statusBaru === 'dikembalikan' ) {
 
             // Kembalikan stok
             foreach ($peminjaman->detailPinjam as $detail) {
