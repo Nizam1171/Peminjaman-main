@@ -116,33 +116,53 @@ public function createAlat()
     // 3. Menyimpan alat baru
 public function storeAlat(Request $request)
 {
-    $request->validate([
+    $validated = $request->validate([
         'nama_alat' => 'required|string|max:255',
         'kategori_id' => 'required|exists:kategori,id',
         'stok' => 'required|integer|min:0',
         'status_kondisi' => 'required|string|max:100',
         'deskripsi' => 'nullable|string',
-        'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
     ]);
 
-    $data = $request->all();
-
-    // Handle Upload Gambar jika ada
+    // Upload gambar jika tersedia
     if ($request->hasFile('gambar')) {
         $file = $request->file('gambar');
-        $filename = time() . '_' . $file->getClientOriginalName();
 
-        $file->move(public_path('storage/alat'), $filename);
+        if (!$file->isValid()) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'gambar' => 'Upload gambar gagal. Silakan coba lagi.'
+                ]);
+        }
 
-        $data['gambar'] = 'storage/alat/' . $filename;
+        // Pastikan folder penyimpanan tersedia
+        $folder = public_path('storage/alat');
+
+        if (!is_dir($folder)) {
+            mkdir($folder, 0755, true);
+        }
+
+        // Buat nama file unik
+        $filename = uniqid() . '.' . $file->extension();
+
+        // Simpan gambar
+        $file->move($folder, $filename);
+
+        // Simpan lokasi gambar ke database
+        $validated['gambar'] = 'storage/alat/' . $filename;
     }
 
-    Alat::create($data);
+    // Simpan data alat
+    $alat = Alat::create($validated);
 
+    // Catat aktivitas
     $this->catatAktivitas(
-        "Menambahkan alat '{$request->nama_alat}'."
+        "Menambahkan alat '{$alat->nama_alat}'."
     );
 
+    // Kembali ke daftar alat
     return redirect()
         ->route('admin.alat.index')
         ->with('success', 'Data alat berhasil ditambahkan.');
@@ -162,45 +182,64 @@ public function updateAlat(Request $request, $id)
 {
     $alat = Alat::findOrFail($id);
 
-    $request->validate([
+    $validated = $request->validate([
         'nama_alat' => 'required|string|max:255',
         'kategori_id' => 'required|exists:kategori,id',
         'stok' => 'required|integer|min:0',
         'status_kondisi' => 'required|string|max:100',
         'deskripsi' => 'nullable|string',
-        'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
     ]);
 
-    $data = $request->all();
-
-    // Handle Upload Gambar jika ada file baru
+    // Upload gambar baru jika tersedia
     if ($request->hasFile('gambar')) {
+        $file = $request->file('gambar');
 
-        // Hapus gambar lama jika ada
+        // Pastikan file berhasil diunggah
+        if (!$file->isValid()) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'gambar' => 'Upload gambar gagal. Silakan coba lagi.'
+                ]);
+        }
+
+        // Pastikan folder penyimpanan tersedia
+        $folder = public_path('storage/alat');
+
+        if (!is_dir($folder)) {
+            mkdir($folder, 0755, true);
+        }
+
+        // Buat nama file unik
+        $filename = uniqid() . '.' . $file->extension();
+
+        // Simpan gambar baru
+        $file->move($folder, $filename);
+
+        // Hapus gambar lama setelah gambar baru berhasil disimpan
         if ($alat->gambar && file_exists(public_path($alat->gambar))) {
             unlink(public_path($alat->gambar));
         }
 
-        $file = $request->file('gambar');
-        $filename = time() . '_' . $file->getClientOriginalName();
-
-        $file->move(public_path('storage/alat'), $filename);
-
-        $data['gambar'] = 'storage/alat/' . $filename;
+        // Simpan lokasi gambar ke database
+        $validated['gambar'] = 'storage/alat/' . $filename;
     }
 
-    $alat->update($data);
+    // Perbarui data alat
+    $alat->update($validated);
 
+    // Catat aktivitas
     $this->catatAktivitas(
         "Mengubah data alat '{$alat->nama_alat}'."
     );
 
+    // Kembali ke halaman daftar alat
     return redirect()
         ->route('admin.alat.index')
         ->with('success', 'Data alat berhasil diperbarui.');
 }
-
-// 6. Menghapus data alat
+        // 6. Menghapus data alat
 public function destroyAlat($id)
 {
     $alat = Alat::findOrFail($id);
