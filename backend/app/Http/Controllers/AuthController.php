@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -11,6 +13,37 @@ class AuthController extends Controller
     public function showLoginForm()
     {
         return view('auth.login');
+    }
+
+    // Menampilkan Form Register Peminjam
+    public function showRegisterForm()
+    {
+        return view('auth.register');
+    }
+
+    // Memproses Registrasi Peminjam
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'peminjam',
+            'status' => 'aktif',
+        ]);
+
+        // Login otomatis setelah registrasi
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('peminjam.katalog')
+            ->with('success', 'Registrasi berhasil! Selamat datang.');
     }
 
     // Memproses Login
@@ -28,6 +61,9 @@ class AuthController extends Controller
             if ($user->status === 'nonaktif') {
                 Auth::logout();
 
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
                 return back()
                     ->withInput($request->only('email'))
                     ->with('error', 'Akun Anda sedang dinonaktifkan. Silakan hubungi administrator.');
@@ -35,25 +71,30 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            // Redirect berdasarkan Role
+            // Redirect berdasarkan role
             if ($user->role === 'admin') {
-                return redirect()->route('admin.admin.dashboard');
-            } elseif ($user->role === 'petugas') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if ($user->role === 'petugas') {
                 return redirect()->route('petugas.peminjaman.index');
-            } elseif ($user->role === 'peminjam') {
+            }
+
+            if ($user->role === 'peminjam') {
                 return redirect()->route('peminjam.katalog');
             }
 
             Auth::logout();
 
-            return redirect()
-                ->route('login')
+            return redirect()->route('login')
                 ->with('error', 'Role tidak dikenali.');
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
+        return back()
+            ->withErrors([
+                'email' => 'Email atau password salah.',
+            ])
+            ->onlyInput('email');
     }
 
     // Proses Logout

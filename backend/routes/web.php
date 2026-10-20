@@ -12,7 +12,7 @@ Route::get('/', function () {
 
 // Admin Punya Kuasa
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
     // Route katak mori
     Route::get('/kategori', [AdminController::class, 'indexKategori'])->name('kategori.index');
@@ -105,11 +105,24 @@ Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam
 });
 
 
-// Route Tamu Tak Dikenal
+
+ // Route Login dan Register
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    // Login untuk semua role
+    Route::get('/login', [AuthController::class, 'showLoginForm'])
+        ->name('login');
+
     Route::post('/login', [AuthController::class, 'login']);
+
+    // Register khusus Peminjam
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])
+        ->name('register');
+
+    Route::post('/register', [AuthController::class, 'register'])
+        ->name('register.store');
 });
 
-// Route Logout (Harus sudah login)
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+// Logout
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout')
+    ->middleware('auth');
