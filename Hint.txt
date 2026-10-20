@@ -38,3 +38,56 @@ install ulang
 cek status
    docker compose ps -a
    docker compose log --tail=50 app-laravel
+
+
+================================================================
+================================================================
+
+   
+# Masuk ke folder backend
+cd ~/Peminjaman-main/backend
+
+# Salin file konfigurasi
+cp .env.example .env
+
+# Edit konfigurasi .env
+nano .env
+
+# Kembali ke folder utama
+cd ~/Peminjaman-main
+
+# Cari file Docker Compose
+find . -maxdepth 3 \( -name "docker-compose.yml" -o -name "docker-compose.yaml" -o -name "compose.yml" -o -name "compose.yaml" \)
+
+# Lihat konfigurasi Docker Compose
+cat docker-compose.yml
+
+# Jalankan container
+docker compose up -d
+
+# Instal dependensi Composer
+docker compose run --rm app-laravel composer install
+
+# Periksa file autoload Composer
+ls -la backend/vendor/autoload.php
+
+# Periksa autoload dari dalam container
+docker compose run --rm app-laravel ls -la /var/www/vendor/autoload.php
+
+# Periksa versi Laravel
+docker compose run --rm app-laravel php artisan --version
+
+# Periksa status container
+docker compose ps -a
+
+# Periksa log terakhir
+docker compose logs --tail=100 app-laravel
+
+# Bangun ulang dan buat ulang container Laravel
+docker compose up -d --build --force-recreate app-laravel
+
+# Periksa status akhir
+docker compose ps -a
+
+# Periksa log akhir
+docker compose logs --tail=50 app-laravel
