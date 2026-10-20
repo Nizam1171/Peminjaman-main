@@ -1,0 +1,40 @@
+dalam folder backend
+   cp .env.example .env		= copy file .env
+edit file .env
+
+kembali ke folder ~/Peminjaman-main
+   docker compose up -d
+
+install composer
+   docker compose run -rm app-laravel composer install
+
+masuk folder backend
+cek kepemilikan composer tersedia di vendor
+   ls -la vendor/autoload.php
+
+masih dalam folder backend, jalankan
+   docker compose run -rm app-laravel ls -la /var/www/vendor/autoload.php
+
+cek list container
+   docker compose ps -a
+
+cek log terakhir
+   docker compose logs --tail=100 app-laravel
+
+install dengan artisan
+   docker compose run -rm app-laravel php artisan --version
+
+find . -maxdepth 3 \( -name "docker-compose.yml" -o -name "docker-compose.yaml" -o -name "compose.yml" -o -name "compose.yaml" \)
+
+atau langsung
+cat docker-compose.yml
+
+cek kepemilikkan
+   ls -la backend/artisan backend/vendor/autoload.php
+
+install ulang
+   docker compose up -d --build --force-recreate app-larave
+
+cek status
+   docker compose ps -a
+   docker compose log --tail=50 app-laravel
